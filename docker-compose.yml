@@ -38,15 +38,13 @@ services:
       - mysql_data:/var/lib/mysql
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+    image: arm64v8/phpmyadmin
     container_name: phpmyadmin
-    restart: unless-stopped
     ports:
       - "8083:80"
     environment:
       PMA_HOST: db
-      PMA_USER: symfony
-      PMA_PASSWORD: symfony
+      MYSQL_ROOT_PASSWORD: root
     depends_on:
       - db
 
