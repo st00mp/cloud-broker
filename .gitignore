@@ -1,0 +1,46 @@
+# Symfony environment and configuration files
+.env
+.env.dev
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+
+# Symfony cache, logs, and sessions
+/var/
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Vendors (managed by composer)
+vendor/
+
+# Public assets
+/public/bundles/
+/public/build/
+/public/uploads/
+/public/media/
+
+# Node.js and npm/yarn related files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker-related files and folders
+docker-compose.override.yml
+docker-compose.*.yml
+.dockerignore
+docker_data/
+*.sql
+*.dump
+
+# IDE and system files
+.idea/
+.vscode/
+.DS_Store
+*.swp
+Thumbs.db
+
+# Git-related
+.git/
