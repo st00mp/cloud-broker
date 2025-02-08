@@ -1,9 +1,8 @@
 # Symfony environment and configuration files
 .env
 .env.dev
-/.env.local
-/.env.local.php
-/.env.*.local
+.env.local
+.env.test
 /config/secrets/prod/prod.decrypt.private.php
 
 # Symfony cache, logs, and sessions
