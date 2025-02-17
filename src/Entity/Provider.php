@@ -24,4 +24,56 @@ class Provider
     {
         $this->instances = new ArrayCollection();
     }
+
+    /**
+     * Getter name.
+     */
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Setter name (pour pouvoir faire setName('AWS')).
+     */
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return Collection<int, InstanceDetail>
+     */
+    public function getInstances(): Collection
+    {
+        return $this->instances;
+    }
+
+    public function addInstance(InstanceDetail $instance): static
+    {
+        if (!$this->instances->contains($instance)) {
+            $this->instances->add($instance);
+            $instance->setProvider($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInstance(InstanceDetail $instance): static
+    {
+        if ($this->instances->removeElement($instance)) {
+            // set the owning side to null (unless already changed)
+            if ($instance->getProvider() === $this) {
+                $instance->setProvider(null);
+            }
+        }
+
+        return $this;
+    }
 }
