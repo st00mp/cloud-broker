@@ -54,7 +54,7 @@ class FetchSpotOffersCommand extends Command
         // 3) describeSpotPriceHistory
         try {
             $result = $ec2Client->describeSpotPriceHistory([
-                'ProductDescriptions'    => ['Linux/UNIX'],
+                'ProductDescriptions'   => ['Linux/UNIX'],
                 'MaxResults'            => 99,
             ]);
             $spotPrices = $result->get('SpotPriceHistory') ?? [];
@@ -124,12 +124,13 @@ class FetchSpotOffersCommand extends Command
             }
 
             $item       = $instanceDetailsMap[$instanceType];
+
             $gpuInfo    = $item['GpuInfo']['Gpus'][0] ?? null;
-            $gpuModel   = $gpuInfo['Name'] ?? 'none';
-            $vram       = $gpuInfo['MemorySizeInMiB'] ?? 0;
-            $vcpu       = $item['VCpuInfo']['DefaultVCpus'] ?? 0;
-            $ram        = $item['MemoryInfo']['SizeInMiB'] ?? 0;
-            $network    = $item['NetworkInfo']['NetworkPerformance'] ?? '';
+            $gpuModel   = $gpuInfo ? ($gpuInfo['Name'] ?? 'none') : 'none';
+            $vram       = $item['GpuInfo']['TotalGpuMemoryInMiB'] ?? ($gpuInfo ? ($gpuInfo['MemoryInfo']['SizeInMiB'] ?? 0) : 0);
+            $vcpu       = $item['VCpuInfo']['DefaultCores'] ?? $item['VCpuInfo']['DefaultVCpus'] ?? 0;
+            $ram        = $item['MemoryInfo']['SizeInMiB'] ?? $item['MemoryInfo']['TotalSizeInMiB'] ?? 0;
+            $network    = $item['NetworkInfo']['NetworkPerformance'] ?? 'standard';
 
             // Filtre : si pas de GPU, on ignore
             if ($vram === 0) {
@@ -139,7 +140,13 @@ class FetchSpotOffersCommand extends Command
 
             // 6) InstanceDetail
             $instanceDetailRepo = $this->em->getRepository(InstanceDetail::class);
-            $instanceDetail = $instanceDetailRepo->findOneBy(['instanceType' => $instanceType]);
+
+            // Vérifie si l'instance existe déjà dans l'EntityManager ou la base
+            $instanceDetail = $this->em->getUnitOfWork()->getIdentityMap()[InstanceDetail::class][$instanceType] ?? null;
+            if (!$instanceDetail) {
+                $instanceDetail = $instanceDetailRepo->findOneBy(['instanceType' => $instanceType]);
+            }
+
             if (!$instanceDetail) {
                 $instanceDetail = new InstanceDetail();
                 $instanceDetail->setInstanceType($instanceType);
