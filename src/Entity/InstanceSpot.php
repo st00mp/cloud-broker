@@ -20,6 +20,9 @@ class InstanceSpot
     #[ORM\Column(type: 'decimal', precision: 10, scale: 5)]
     private float $spotPrice;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $osSupported = null;
+
     #[ORM\Column(type: 'string', length: 50)]
     private string $availabilityZone;
 
@@ -39,6 +42,18 @@ class InstanceSpot
     public function setSpotPrice(string $spotPrice): static
     {
         $this->spotPrice = $spotPrice;
+
+        return $this;
+    }
+
+    public function getOsSupported(): ?string
+    {
+        return $this->osSupported;
+    }
+
+    public function setOsSupported(?string $osSupported): self
+    {
+        $this->osSupported = $osSupported;
 
         return $this;
     }

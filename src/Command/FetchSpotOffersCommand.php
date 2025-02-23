@@ -2,21 +2,21 @@
 
 namespace App\Command;
 
-use App\Entity\InstanceDetail;
-use App\Entity\InstanceSpot;
-use App\Entity\Provider;
+use Aws\Ec2\Ec2Client;
+use Aws\Exception\AwsException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Aws\Ec2\Ec2Client;
-use Aws\Exception\AwsException;
 use DateTime;
+
+use App\Entity\InstanceDetail;
+use App\Entity\InstanceSpot;
 
 #[AsCommand(
     name: 'app:fetch-spot-offers',
-    description: 'Récupère les offres Spot AWS (via le SDK) et les stocke dans Entity InstanceSpot/InstanceDetail.'
+    description: 'Récupère uniquement les prix Spot pour les instances GPU déjà enregistrées dans InstanceDetail.'
 )]
 
 class FetchSpotOffersCommand extends Command
@@ -51,140 +51,103 @@ class FetchSpotOffersCommand extends Command
             ],
         ]);
 
-        // 3) describeSpotPriceHistory
-        try {
-            $result = $ec2Client->describeSpotPriceHistory([
-                'ProductDescriptions'   => ['Linux/UNIX'],
-                'MaxResults'            => 99,
-            ]);
-            $spotPrices = $result->get('SpotPriceHistory') ?? [];
-        } catch (AwsException $e) {
-            $output->writeln(("<error>Erreur describeSpotPriceHistory : {$e->getAwsErrorMessage()}</error>"));
-            return Command::FAILURE;
-        }
+        // 3) Récupérer la liste des InstanceDetail GPU
+        $detailsRepo = $this->em->getRepository(InstanceDetail::class);
+        $gpuDetails  = $detailsRepo->findBy(['hasGpu' => true]);
 
-        if (empty($spotPrices)) {
-            $output->writeln("<comment>Aucune offre Spot trouvée.</comment>");
+        if (empty($gpuDetails)) {
+            $output->writeln("<comment>Aucun InstanceDetail GPU trouvé en base.</comment>");
             return Command::SUCCESS;
         }
 
-        // 4) Provider (AWS)
-        $providerRepo = $this->em->getRepository(Provider::class);
-        $awsProvider = $providerRepo->findOneBy(['name' => 'AWS']);
-        if (!$awsProvider) {
-            $awsProvider = new Provider();
-            $awsProvider->setName('AWS');
-            $this->em->persist($awsProvider);
-            $this->em->flush();
-        }
+        // Créer un tableau de string : ex ["p3.2xlarge", "g4dn.xlarge", ...]
+        $instanceTypes = array_map(fn(InstanceDetail $d) => $d->getInstanceType(), $gpuDetails);
 
-        // Compteurs
-        $countInserted = 0;
-        $countSkipped = 0;
-
-        // 5) Pour chaque Spot, on collecte les instanceTypes dans un tableau
-        $instanceTypes = [];
-        foreach ($spotPrices as $offer) {
-            $instanceTypes[] = $offer['InstanceType'];
-        }
-
-        // On supprime les doublons pour éviter des requêtes inutiles
+        // Supprimer les doublons au cas où
         $instanceTypes = array_unique($instanceTypes);
 
-        // 5a) Une seule requête AWS pour tous les instanceTypes
-        try {
-            $details = $ec2Client->describeInstanceTypes([
-                'InstanceTypes' => $instanceTypes,
-            ]);
-            $items = $details->get('InstanceTypes') ?? [];
-        } catch (AwsException $e) {
-            $output->writeln("<error>Erreur describeInstanceTypes : {$e->getAwsErrorMessage()}</error>");
-            return Command::FAILURE;
-        }
+        // 4) Chunk si besoin (pour éviter de dépasser la limite AWS
+        $chunks = array_chunk($instanceTypes, 20);
 
-        // Transformer la réponse en tableau associatif [instanceType => details]
-        $instanceDetailsMap = [];
-        foreach ($items as $item) {
-            $instanceDetailsMap[$item['InstanceType']] = $item;
-        }
+        $countInserted = 0;
+        $countSkipped = 0;
+        $maxResults = 1000; // Limite globale à 1000 résultats
 
-        // Batch Size : Flush tous les X enregistrements
-        $batchSize = 50;
+        // 5) Pour chaque chunk, appel DescribeSpotPriceHistory
+        foreach ($chunks as $chunk) {
+            try {
+                $paginator = $ec2Client->getPaginator('DescribeSpotPriceHistory', [
+                    'ProductDescriptions' => ['Linux/UNIX'],
+                    'Filters' => [
+                        [
+                            'Name'  => 'instance-type',
+                            'Values' => $chunk,
+                        ],
+                    ],
+                    // MaxResults limite de nombre de résultats par page
+                    'MaxResults' => 99,
+                ]);
 
-        // 5) Pour chaque Spot
-        foreach ($spotPrices as $index => $offer) {
-            $instanceType     = $offer['InstanceType'];
-            $spotPrice        = (float) $offer['SpotPrice'];
-            $availabilityZone = $offer['AvailabilityZone'];
+                foreach ($paginator as $page) {
+                    $spotPrices = $page->get('SpotPriceHistory') ?? [];
 
-            // Utilisation directe du tableau associatif pour éviter les appels répétitifs
-            if (!isset($instanceDetailsMap[$instanceType])) {
-                $countSkipped++;
-                continue;
-            }
+                    // 6) Insérer en DB
+                    foreach ($spotPrices as $offer) {
+                        if ($countInserted >= $maxResults) {
+                            //  Arrête la récupération dès que la limite est atteinte
+                            break 3; // Quitte la boucle foreach et foreach parent
+                        }
 
-            $item       = $instanceDetailsMap[$instanceType];
+                        $instanceType       = $offer['InstanceType'];
+                        $spotPrice          = (float) $offer['SpotPrice'];
+                        $productDesc        = $offer['ProductDescription'];
+                        $availabilityZone   = $offer['AvailabilityZone'];
+                        $timestamp          = new DateTime($offer['Timestamp']); // AWS renvoie un string datettime. Tu peux new DateTime() dessus
 
-            $gpuInfo    = $item['GpuInfo']['Gpus'][0] ?? null;
-            $gpuModel   = $gpuInfo ? ($gpuInfo['Name'] ?? 'none') : 'none';
-            $vram       = $item['GpuInfo']['TotalGpuMemoryInMiB'] ?? ($gpuInfo ? ($gpuInfo['MemoryInfo']['SizeInMiB'] ?? 0) : 0);
-            $vcpu       = $item['VCpuInfo']['DefaultCores'] ?? $item['VCpuInfo']['DefaultVCpus'] ?? 0;
-            $ram        = $item['MemoryInfo']['SizeInMiB'] ?? $item['MemoryInfo']['TotalSizeInMiB'] ?? 0;
-            $network    = $item['NetworkInfo']['NetworkPerformance'] ?? 'standard';
+                        // Retrouver l'InstanceDetail
+                        $detail = $this->em->getRepository(InstanceDetail::class)
+                            ->findOneBy(['instanceType' => $instanceType]);
 
-            // Filtre : si pas de GPU, on ignore
-            if ($vram === 0) {
-                $countSkipped++;
-                continue;
-            }
+                        if (!$detail) {
+                            $countSkipped++;
+                            continue;
+                        }
 
-            // 6) InstanceDetail
-            $instanceDetailRepo = $this->em->getRepository(InstanceDetail::class);
+                        $spotEntity = new InstanceSpot();
+                        $spotEntity->setInstanceDetail($detail);
+                        $spotEntity->setSpotPrice($spotPrice);
+                        $spotEntity->setAvailabilityZone($availabilityZone);
+                        $spotEntity->setTimestamp($timestamp);
 
-            // Vérifie si l'instance existe déjà dans l'EntityManager ou la base
-            $instanceDetail = $this->em->getUnitOfWork()->getIdentityMap()[InstanceDetail::class][$instanceType] ?? null;
-            if (!$instanceDetail) {
-                $instanceDetail = $instanceDetailRepo->findOneBy(['instanceType' => $instanceType]);
-            }
+                        // Stocker l'OS dans la table spot
+                        $spotEntity->setOsSupported($productDesc);
 
-            if (!$instanceDetail) {
-                $instanceDetail = new InstanceDetail();
-                $instanceDetail->setInstanceType($instanceType);
-                $instanceDetail->setProvider($awsProvider);
-                $instanceDetail->setGpuModel($gpuModel);
-                $instanceDetail->setVram($vram);
-                $instanceDetail->setVcpu($vcpu);
-                $instanceDetail->setRam($ram);
-                $instanceDetail->setNetworkPerformance($network);
-                $instanceDetail->setOsSupported('Linux/UNIX');
+                        $this->em->persist($spotEntity);
+                        $countInserted++;
+                    }
 
-                $this->em->persist($instanceDetail);
-            }
-
-            // 7) InstanceSpot
-            $spotEntity = new InstanceSpot();
-            $spotEntity->setInstanceDetail($instanceDetail);
-            $spotEntity->setSpotPrice($spotPrice);
-            $spotEntity->setAvailabilityZone($availabilityZone);
-            $spotEntity->setTimestamp(new DateTime());
-
-            $this->em->persist($spotEntity);
-
-            $countInserted++;
-
-            // Flush et clear tous les X enregistrements
-            if (($index + 1) % $batchSize === 0) {
-                $this->em->flush();
-                $this->em->clear();  // Libère la mémoire
+                    // Flush de temps en temps
+                    if ($countInserted % 100 === 0) {
+                        $this->em->flush();
+                        $this->em->clear();
+                        gc_collect_cycles();  // Libère la mémoire PHP (garbage collector)
+                    }
+                }
+            } catch (AwsException $e) {
+                $output->writeln("<error>Erreur describeSpotPriceHistory : {$e->getAwsErrorMessage()}</error>");
+                return Command::FAILURE;
+            } catch (\Exception $e) {
+                $output->writeln("<error>Erreur inattendue : {$e->getMessage()}</error>");
+                return Command::FAILURE;
             }
         }
 
-        // Flush final pour les enregistrements restants
+        // Flush final
         $this->em->flush();
         $this->em->clear();
 
-        // Au final on affiche un résumé
-        $output->writeln("<info>$countInserted offres Spot insérées, $countSkipped ignorées.</info>");
+        $output->writeln("<info>$countInserted prix Spot insérés, $countSkipped ignorés.</info>");
+
         return Command::SUCCESS;
     }
 }

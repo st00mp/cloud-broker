@@ -37,8 +37,11 @@ class InstanceDetail
     #[ORM\Column(type: 'string', length: 20)]
     private string $networkPerformance;
 
-    #[ORM\Column(type: 'text')]
-    private string $osSupported;
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $numberOfGpus = 0;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $hasGpu = false;
 
     #[ORM\OneToMany(mappedBy: 'instanceDetail', targetEntity: InstanceSpot::class, cascade: ['remove'])]
     private Collection $spotPrices;
@@ -125,15 +128,25 @@ class InstanceDetail
         return $this;
     }
 
-    public function getOsSupported(): ?string
+    public function getNumberOfGpus(): int
     {
-        return $this->osSupported;
+        return $this->numberOfGpus;
     }
 
-    public function setOsSupported(string $osSupported): static
+    public function setNumberOfGpus(int $numberOfGpus): self
     {
-        $this->osSupported = $osSupported;
+        $this->numberOfGpus = $numberOfGpus;
+        return $this;
+    }
 
+    public function getHasGpu(): bool
+    {
+        return $this->hasGpu;
+    }
+
+    public function setHasGpu(bool $hasGpu): self
+    {
+        $this->hasGpu = $hasGpu;
         return $this;
     }
 

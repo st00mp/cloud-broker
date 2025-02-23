@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/var/www/symfony
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
     ports:
       - "8080:80"
     environment:
