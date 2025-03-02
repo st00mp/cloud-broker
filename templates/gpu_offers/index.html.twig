@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Offres GPU
+{% endblock %}
+
+{% block body %}
+	<h1>Offres GPU</h1>
+	<table id="offers-table">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Fournisseur</th>
+				<th>Type d'instance</th>
+				<th>GPU</th>
+				<th>VRAM</th>
+				<th>vCPU</th>
+				<th>Prix</th>
+				<th>Zone de disponibilité</th>
+				<th>OS</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- Les données seront insérées ici -->
+		</tbody>
+	</table>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+fetch('{{ path("offers") }}').then(response => {
+if (!response.ok) {
+throw new Error('Erreur lors de la récupération des données');
+}
+return response.json();
+}).then(data => {
+const tbody = document.querySelector('#offers-table tbody');
+data.forEach(offer => {
+const row = document.createElement('tr');
+row.innerHTML = `
+              <td>${
+offer.id
+}</td>
+              <td>${
+offer.provider
+}</td>
+              <td>${
+offer.instanceType
+}</td>
+              <td>${
+offer.gpuModel
+}</td>
+              <td>${
+offer.vram
+}</td>
+              <td>${
+offer.vcpu
+}</td>
+              <td>${
+offer.price
+}</td>
+              <td>${
+offer.availabilityZone
+}</td>
+              <td>${
+offer.os_supported
+}</td>
+              <td>${
+offer.date
+}</td>
+            `;
+tbody.appendChild(row);
+});
+}).catch(error => {
+console.error(error);
+document.body.insertAdjacentHTML('beforeend', `<p style="color:red;">${error}</p>`);
+});
+});
+	</script>
+{% endblock %}

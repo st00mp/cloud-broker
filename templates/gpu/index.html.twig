@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Listing des offres GPU
+{% endblock %}
+
+{% block body %}
+	<style>
+		.example-wrapper {
+			margin: 1em auto;
+			max-width: 800px;
+			width: 95%;
+			font: 18px / 1.5 sans-serif;
+		}
+		.example-wrapper code {
+			background: #F5F5F5;
+			padding: 2px 6px;
+		}
+	</style>
+
+	<div class="example-wrapper">
+		<h1>Listing des offres GPU 🤖✅</h1>
+
+		<table border="1">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Provider</th>
+					<th>Instance type</th>
+					<th>GPU Model</th>
+					<th>vRAM</th>
+					<th>vCPU</th>
+					<th>Price</th>
+					<th>Région</th>
+					<th>Date</th>
+
+				</tr>
+			</thead>
+			<tbody>
+				{% for offer in offers %}
+					<tr>
+						<td>
+							{{offer.id}}
+						</td>
+						<td>
+							{{offer.instanceDetail.provider.name}}
+						</td>
+						<td>
+							{{offer.instanceDetail.instanceType}}
+						</td>
+						<td>
+							{{offer.instanceDetail.gpuModel}}
+						</td>
+						<td>
+							{{offer.instanceDetail.vram}}
+						</td>
+						<td>
+							{{offer.instanceDetail.vcpu}}
+						</td>
+						<td>
+							{{offer.spotPrice}}
+						</td>
+						<td>
+							{{offer.availabilityZone}}
+						</td>
+						<td>
+							{{offer.timestamp|date('Y-m-d H:i:s')}}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}
