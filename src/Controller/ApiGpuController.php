@@ -26,7 +26,7 @@ final class ApiGpuController extends AbstractController
                 'price' => $offer->getSpotPrice(),
                 'availabilityZone' => $offer->getAvailabilityZone(),
                 'os_supported' => $offer->getOsSupported(),
-                'date' => $offer->getTimestamp(),
+                'date' => $offer->getTimestamp()->format('Y-m-d H:i:s'),
             ];
         }, $offers);
         return $this->json($data);

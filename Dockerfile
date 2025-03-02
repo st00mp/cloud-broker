@@ -20,6 +20,9 @@ ENV PATH="/usr/local/bin:$PATH"
 # Définir le répertoire de travail
 WORKDIR /var/www/symfony
 
+# Copier le fichier php.ini dans l'image
+COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Copier les fichiers de l'application
 COPY . .
 
