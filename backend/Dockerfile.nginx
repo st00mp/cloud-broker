@@ -2,6 +2,5 @@ FROM nginx:alpine
 
 # Copier la configuration Nginx dans l'image
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY public /var/www/symfony/public
 
-# Exposer le port Nginx
-EXPOSE 80

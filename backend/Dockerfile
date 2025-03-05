@@ -20,14 +20,15 @@ ENV PATH="/usr/local/bin:$PATH"
 # Définir le répertoire de travail
 WORKDIR /var/www/symfony
 
-# Copier le fichier php.ini dans l'image
-COPY php.ini /usr/local/etc/php/conf.d/custom.ini
-
 # Copier les fichiers de l'application
 COPY . .
 
+# Copier le fichier php.ini dans l'image
+COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Gestion des permissions pour le serveur web
 RUN chown -R www-data:www-data /var/www/symfony
+RUN mkdir -p /var/www/symfony/var && chmod -R 777 /var/www/symfony/var
 
 # Installer les dépendances Symfony
 RUN composer install --no-interaction --optimize-autoloader
