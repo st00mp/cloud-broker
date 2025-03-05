@@ -50,6 +50,23 @@ services:
     depends_on:
       - db
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nextjs-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - symfony-backend
+      - db
+
 volumes:
   mysql_data:
   symfony_code:
