@@ -1,13 +1,31 @@
+"use client" // pour interactions coté client
+
+import Link from "next/link";
+import {
+    NavigationMenu,
+    NavigationMenuItem,
+    NavigationMenuList,
+} from "@/components/ui/navigation-menu"
+
 export default function Navbar() {
     return (
-        <nav className="bg-gray-900 text-white p-4">
+        <nav className="bg-background text-foreground p-4 border-b border-gray-800">
             <div className="container mx-auto flex justify-between items-center">
-                <a href="/" className="text-xl font-bold">Cloud Broker</a>
-                <ul className="flex space-x-4">
-                    <li><a href="/" className="hover:text-gray-400">Home</a></li>
-                    <li><a href="/test" className="hover:text-gray-400">Test</a></li>
-                    <li><a href="/about" className="hover:text-gray-400">About</a></li>
-                </ul>
+                <Link href="/" className="text-xl font-bold hover:opacity-80">Cloud Broker 👾</Link>
+
+                <NavigationMenu>
+                    <NavigationMenuList>
+                        <NavigationMenuItem>
+                            <Link href="http://localhost:8080/api/gpu/offers" className="px-4 py-2 hover:bg-gray-700 rounded-md">API</Link>
+                        </NavigationMenuItem>
+                        <NavigationMenuItem>
+                            <Link href="/blog" className="px-4 py-2 hover:bg-gray-700 rounded-md">Blog</Link>
+                        </NavigationMenuItem>
+                        <NavigationMenuItem>
+                            <Link href="/about" className="px-4 py-2 hover:bg-gray-700 rounded-md">About</Link>
+                        </NavigationMenuItem>
+                    </NavigationMenuList>
+                </NavigationMenu>
             </div>
         </nav>
     );

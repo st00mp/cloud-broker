@@ -1,5 +1,14 @@
 "use client";
 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
 type Offer = {
     id: number;
     provider: string;
@@ -15,37 +24,35 @@ type Offer = {
 
 export default function GpuTable({ data }: { data: Offer[] }) {
     return (
-        <div className="overflow-x-auto p-4">
-            <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-md">
-                <thead className="bg-gray-900 text-white">
-                    <tr>
-                        <th className="py-3 px-4 text-left text-gray-200">Provider</th>
-                        <th className="py-3 px-4 text-left text-gray-200">Instance Type</th>
-                        <th className="py-3 px-4 text-left text-gray-200">GPU Model</th>
-                        <th className="py-3 px-4 text-left text-gray-200">VRAM</th>
-                        <th className="py-3 px-4 text-left text-gray-200">vCPU</th>
-                        <th className="py-3 px-4 text-left text-gray-200">Price</th>
-                        <th className="py-3 px-4 text-left text-gray-200">Availabilty Zone</th>
-                        <th className="py-3 px-4 text-left text-gray-200">OS</th>
-                        <th className="py-3 px-4 text-left text-gray-200">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((offer) => (
-                        <tr key={offer.id} className="border-t border-gray-200 hover:bg-gray-100">
-                            <td className="py-3 px-4 text-gray-800">{offer.provider}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.instanceType}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.gpuModel}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.vram}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.vcpu}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.price}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.availabilityZone}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.os_supported}</td>
-                            <td className="py-3 px-4 text-gray-800">{offer.date}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+        <Table className="rounded-md border border-gray-800 shadow-sm">
+            <TableHeader className="bg-gray-900 text-white">
+                <TableRow>
+                    <TableHead>Provider</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>GPU Model</TableHead>
+                    <TableHead>VRAM</TableHead>
+                    <TableHead>vCPU</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Availability Zone</TableHead>
+                    <TableHead>OS</TableHead>
+                    <TableHead>Date</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {data.map((offer) => (
+                    <TableRow key={offer.id} className="hover:bg-gray-800">
+                        <TableCell>{offer.provider}</TableCell>
+                        <TableCell>{offer.instanceType}</TableCell>
+                        <TableCell>{offer.gpuModel}</TableCell>
+                        <TableCell>{offer.vram}</TableCell>
+                        <TableCell>{offer.vcpu}</TableCell>
+                        <TableCell>{offer.price}</TableCell>
+                        <TableCell>{offer.availabilityZone}</TableCell>
+                        <TableCell>{offer.os_supported}</TableCell>
+                        <TableCell>{offer.date}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    )
 }
