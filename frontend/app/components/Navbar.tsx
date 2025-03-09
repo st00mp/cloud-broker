@@ -16,7 +16,7 @@ export default function Navbar() {
                 <NavigationMenu>
                     <NavigationMenuList>
                         <NavigationMenuItem>
-                            <Link href="http://localhost:8080/api/gpu/offers" className="px-4 py-2 hover:bg-gray-700 rounded-md">API</Link>
+                            <Link href="http://localhost:8080/api/gpu/offers" className="px-4 py-2 hover:bg-gray-700 rounded-md" target="_blank">API</Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
                             <Link href="/blog" className="px-4 py-2 hover:bg-gray-700 rounded-md">Blog</Link>

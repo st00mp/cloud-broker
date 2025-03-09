@@ -1,4 +1,5 @@
-import GpuTable from "../components/GpuTable";
+import { GpuDataTable } from "../components/GpuDataTable"
+// import GpuTable from "../components/GpuTable";
 
 export default async function Home() {
     // Récupère les données côté serveur
@@ -8,7 +9,7 @@ export default async function Home() {
     return (
         <div className="container mx-auto py-8">
             <h1 className="text-2xl font-bold mb-4">GPU Offers</h1>
-            <GpuTable data={data} />
+            <GpuDataTable data={data} />
         </div>
     );
 }
