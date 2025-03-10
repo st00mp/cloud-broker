@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowUpDown } from "lucide-react"
 
+// Typage basique
 type Offer = {
     id: number
     provider: string
@@ -40,7 +41,7 @@ type Offer = {
     date: string
 }
 
-// Définis tes colonnes TanStack
+// Colonnes TanStack (avec tri sur VRAM, vCPU, Price, Date, etc.)
 const columns: ColumnDef<Offer>[] = [
     {
         accessorKey: "provider",
@@ -52,7 +53,15 @@ const columns: ColumnDef<Offer>[] = [
     },
     {
         accessorKey: "gpuModel",
-        header: "GPU Model",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                GPU Model
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
     },
     {
         accessorKey: "vram",
@@ -92,15 +101,7 @@ const columns: ColumnDef<Offer>[] = [
     },
     {
         accessorKey: "availabilityZone",
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-                Availability
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
+        header: "Availability",
     },
     {
         accessorKey: "os_supported",
@@ -118,19 +119,15 @@ const columns: ColumnDef<Offer>[] = [
             </Button>
         ),
     },
-
 ]
 
 export function GpuDataTable({ data }: { data: Offer[] }) {
-    // Etats TanStack
+    // États internes (TanStack) pour le tri, etc.
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-    )
-    const [columnVisibility, setColumnVisibility] =
-        React.useState<VisibilityState>({})
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
-    // On crée l'instance du tableau
+    // Création de l’instance du tableau
     const table = useReactTable({
         data,
         columns,
@@ -143,34 +140,18 @@ export function GpuDataTable({ data }: { data: Offer[] }) {
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
         getCoreRowModel: getCoreRowModel(),
-        // Ajoute la pagination
         getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(), // si tu veux rajouter du filtrage interne
         initialState: {
             pagination: {
-                pageSize: 100,
+                pageSize: 50,
             },
         },
-        // Ajoute le tri
-        getSortedRowModel: getSortedRowModel(),
-        // Ajoute le filtrage (si tu veux un input + filtrage)
-        getFilteredRowModel: getFilteredRowModel(),
     })
 
     return (
         <div className="w-full">
-            {/* Barre de recherche ou autres actions */}
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder="Filter GPU Model..."
-                    value={(table.getColumn("gpuModel")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("gpuModel")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
-            </div>
-
-            {/* Rendu du tableau */}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -195,10 +176,7 @@ export function GpuDataTable({ data }: { data: Offer[] }) {
                                 <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -214,7 +192,7 @@ export function GpuDataTable({ data }: { data: Offer[] }) {
                 </Table>
             </div>
 
-            {/* Pagination basique (Previous / Next) */}
+            {/* Pagination basique */}
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"
