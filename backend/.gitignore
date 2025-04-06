@@ -31,8 +31,6 @@ docker-compose.override.yml
 docker-compose.*.yml
 .dockerignore
 docker_data/
-*.sql
-*.dump
 
 # IDE and system files
 .idea/
