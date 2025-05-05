@@ -9,7 +9,7 @@ import {
 
 export default function Navbar() {
     return (
-        <nav className="bg-background text-foreground p-4 border-b border-gray-800">
+        <nav className="bg-background text-foreground p-4 border-b border-white/10">
             <div className="container mx-auto flex justify-between items-center">
                 <Link href="/" className="text-xl font-bold hover:opacity-80">Cloud Broker 👾</Link>
 

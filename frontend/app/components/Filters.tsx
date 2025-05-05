@@ -38,67 +38,64 @@ export default function Filters({
                         Mais on ne centre plus chaque colonne, on les laisse alignées à gauche 
                     */}
                     <div className="max-w-3xl mx-auto w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             {/* Colonne de gauche : 2 filtres empilés */}
-                            <div className="flex justify-start flex-col gap-4">
+                            <div className="flex flex-col items-center gap-4">
                                 <SelectFilter
                                     placeholder="GPU Type"
                                     options={gpuTypes}
                                     onChange={setSelectedGPU}
-                                    selectClassName="h-14 px-6 text-base w-96 border-blue-900 drop-shadow-sm"
-                                />
+                                    selectClassName="h-14 px-6 text-base w-96 border border-white bg-black text-white focus:ring-0 focus:border-white outline-none" />
                                 <SelectFilter
                                     placeholder="Region"
                                     options={regions}
                                     onChange={setSelectedRegion}
-                                    selectClassName="h-14 px-6 text-base w-96 border-blue-900 drop-shadow-sm"
-                                />
+                                    selectClassName="h-14 px-6 text-base w-96 border border-white bg-black text-white focus:ring-0 focus:border-white outline-none" />
                             </div>
 
                             {/* Colonne de droite : 2 filtres empilés */}
-                            <div className="flex justify-end flex-col gap-4 w-96">
+                            <div className="flex flex-col items-center gap-4 w-full md:w-96">
                                 <SelectFilter
                                     placeholder="Provider"
                                     options={providers}
                                     onChange={setSelectedProvider}
-                                    selectClassName="h-14 px-6 text-base w-96 border-blue-900 drop-shadow-sm"
-                                />
+                                    selectClassName="h-14 px-6 text-base w-96 border border-white bg-black text-white focus:ring-0 focus:border-white outline-none" />
+
                                 <SelectFilter
                                     placeholder="Price"
                                     options={providers}
                                     onChange={setSelectedProvider}
-                                    selectClassName="h-14 px-6 text-base w-96 border-blue-900 drop-shadow-sm"
-                                />
+                                    selectClassName="h-14 px-6 text-base w-96 border border-white bg-black text-white focus:ring-0 focus:border-white outline-none" />
                             </div>
                         </div>
                     </div>
 
                     <div className="max-w-3xl mx-auto w-full flex justify-between items-center">
-                        <div className="flex gap-4">
+                        <div className="flex flex-nowrap gap-4 overflow-x-auto scrollbar-none min-w-full">
                             <SelectFilter
                                 placeholder="VRAM"
                                 options={[]} // Vide pour le moment
                                 onChange={() => { }}
-                                selectClassName="h-8 w-26 px-4 text-sm border text-neutral-400"
+                                selectClassName="h-8 w-26 px-4 text-sm border border-white bg-black text-white focus:ring-0 focus:border-white outline-none"
                             />
                             <SelectFilter
                                 placeholder="vCPU"
                                 options={[]} // Vide pour le moment
                                 onChange={() => { }}
-                                selectClassName="h-8 w-26 px-4 text-sm border text-neutral-400"
+                                selectClassName="h-8 w-26 px-4 text-sm border border-white bg-black text-white focus:ring-0 focus:border-white outline-none"
                             />
                             <SelectFilter
                                 placeholder="OS"
                                 options={[]} // Vide pour le moment
                                 onChange={() => { }}
-                                selectClassName="h-8 w-26 px-4 text-sm border text-neutral-400"
+                                selectClassName="h-8 w-26 px-4 text-sm border border-white bg-black text-white focus:ring-0 focus:border-white outline-none"
                             />
                             <SelectFilter
                                 placeholder="Recent"
                                 options={[]} // Vide pour le moment
                                 onChange={() => { }}
-                                selectClassName="h-8 w-26 px-4 text-sm border text-neutral-400"
+                                selectClassName="h-8 w-26 px-4 text-sm border border-white bg-black text-white focus:ring-0 focus:border-white outline-none"
                             />
                             <Button
                                 variant="default"
