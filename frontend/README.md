@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment variables
+
+Copy `frontend/.env.dist` to `.env` and adjust the values for your environment. At minimum set `NEXT_PUBLIC_API_URL` to point to the backend API.
+
 ## Getting Started
 
 First, run the development server:
