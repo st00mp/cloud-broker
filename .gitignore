@@ -1,1 +1,6 @@
 .DS_Store
+
+# Ignore environment files containing secrets
+.env
+.env.*
+!**/*.env.dist
